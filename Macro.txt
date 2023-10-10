@@ -1,0 +1,46 @@
+Private Sub Worksheet_Change(ByVal target As Excel.Range)
+On Error GoTo noname
+Cellname = Right(target.Name.Name, Len(target.Name.Name) - 2)
+Prefix = Left(target.Name.Name, 2)
+Debug.Print target
+Debug.Print Cellname
+Debug.Print Prefix
+If Prefix = "aa" Then
+    Application.EnableEvents = False
+    For i = 1 To ActiveWorkbook.Names.Count
+        If ActiveWorkbook.Names(i).Name = "bb" & Cellname Then
+            ActiveSheet.Range(ActiveWorkbook.Names(i).RefersTo) = target
+        End If
+        If ActiveWorkbook.Names(i).Name = "cc" & Cellname Then
+            ActiveSheet.Range(ActiveWorkbook.Names(i).RefersTo) = target
+        End If
+    Next i
+    Application.EnableEvents = True
+End If
+If Prefix = "bb" Then
+    Application.EnableEvents = False
+    For i = 1 To ActiveWorkbook.Names.Count
+        If ActiveWorkbook.Names(i).Name = "aa" & Cellname Then
+            ActiveSheet.Range(ActiveWorkbook.Names(i).RefersTo) = target
+        End If
+        If ActiveWorkbook.Names(i).Name = "cc" & Cellname Then
+            ActiveSheet.Range(ActiveWorkbook.Names(i).RefersTo) = target
+        End If
+    Next i
+    Application.EnableEvents = True
+End If
+If Prefix = "cc" Then
+    Application.EnableEvents = False
+    For i = 1 To ActiveWorkbook.Names.Count
+        If ActiveWorkbook.Names(i).Name = "aa" & Cellname Then
+            ActiveSheet.Range(ActiveWorkbook.Names(i).RefersTo) = target
+        End If
+        If ActiveWorkbook.Names(i).Name = "bb" & Cellname Then
+            ActiveSheet.Range(ActiveWorkbook.Names(i).RefersTo) = target
+        End If
+    Next i
+    Application.EnableEvents = True
+End If
+noname:
+    Debug.Print "Mistake"
+End Sub

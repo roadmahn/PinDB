@@ -29,11 +29,11 @@ def terminationexport():
     EnclosureDict = {}
 #    directory = os.getcwd()+"/Databases"
 #    filename = "/Lufeng.fs"
-    progress.start()
-    progress.update()      
+#    progress.start()
+#    progress.update()      
     try:
-        btn_terminationexport.config(state=tk.DISABLED)
-        btn_terminationimport.config(state=tk.DISABLED)
+#        btn_terminationexport.config(state=tk.DISABLED)
+#        btn_terminationimport.config(state=tk.DISABLED)
 #        storage = FileStorage.FileStorage(directory+filename) 
         storage = ClientStorage.ClientStorage(addr)             
         db = DB(storage)
@@ -41,7 +41,7 @@ def terminationexport():
         root = connection.root()
         for key in root:
             obj = root[key]
-            progress.update()
+#            progress.update()
             """
             obtain the cables, the connections and the number of cores per cable in a list per cable
             list comprehension:

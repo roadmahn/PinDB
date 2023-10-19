@@ -200,7 +200,6 @@ def terminationexport():
                     counter = 0
                     screennumber = 0
                     for i in range(1,corenumber+1):
-                        progress.update()
                         LSignal = Name + "LSignal"+str(i)
                         #print(LSignal)
                         LTermination = Name + "LTermination" + str(i)                      
@@ -240,7 +239,6 @@ def terminationexport():
                     corenumber = CableDict[cable][1][0]*CableDict[cable][1][1] # total number of cores
                     screennumber = 1
                     for i in range(1,corenumber+1):
-                        progress.update()
                         LSignal = Name + "LSignal"+str(i)
                         #print(LSignal)
                         LTermination = Name + "LTermination" + str(i)                      
@@ -292,7 +290,6 @@ def terminationexport():
 ##        print(CableDict)
 #        print(EnCab)
         for key in EnclosureDict:
-            progress.update()
             startrow = row
             Terminations.ActiveSheet.Cells(row,9).Value = key
             Terminations.ActiveSheet.Range("I"+str(row)+":"+"P"+str(row)).Merge() 
@@ -300,7 +297,6 @@ def terminationexport():
             Terminations.ActiveSheet.Range("I"+str(row)+":"+"P"+str(row)).Font.Bold = True
             row += 1
             for item in EnclosureDict[key]: # item is a Cable Tag or None
-                progress.update()
                 if item != None:
                     startrow2 = row
                     cable = item
@@ -332,7 +328,6 @@ def terminationexport():
                             counter = 0
                             screennumber = 0
                             for i in range(1,corenumber+1):
-                                progress.update()
                                 LSignal = Name + "LSignal"+str(i)
                                 #print(LSignal)
                                 LTermination = Name + "LTermination" + str(i)                      
@@ -398,7 +393,6 @@ def terminationexport():
                             corenumber = CableDict[item][1][0]*CableDict[item][1][1] # total number of cores
                             screennumber = 1
                             for i in range(1,corenumber+1):
-                                progress.update()
                                 LSignal = Name + "LSignal"+str(i)
                                 #print(LSignal)
                                 LTermination = Name + "LTermination" + str(i)                      
@@ -489,16 +483,10 @@ def terminationexport():
         Terminations.ActiveSheet.Shapes("Button 1").TextFrame.Characters(1,8).Text = ""
         Terminations.ActiveSheet.Shapes("Button 1").TextFrame.Characters(1,1).Text = "UPDATE"
         Xcel.Application.Run(MacroName)    
-        progress.stop()
         Terminations.Close(SaveChanges=True)
-        Xcel.Application.Quit()
-        tk.messagebox.showwarning(title=None, message="Terminations Export finished.")
-        btn_terminationexport.config(state=tk.NORMAL)
-        btn_terminationimport.config(state=tk.NORMAL)             
+        Xcel.Application.Quit()          
     except BaseException as e:
-        print(e.args)
-        btn_terminationexport.config(state=tk.NORMAL)
-        btn_terminationimport.config(state=tk.NORMAL)        
+        print(e.args)       
         connection.close()
         storage.close()        
-        progress.stop()     
+   

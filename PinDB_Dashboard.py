@@ -57,7 +57,7 @@ from ZODB import FileStorage, DB
 import transaction
 
 # global variables
-addr = '10.175.13.199', 8090 # This is the address of the ZEO Server
+addr = '10.175.13.199', 8091 # This is the address of the ZEO Server
 DS_List = os.listdir('Datasheets')
 #DB_List = os.listdir('Databases') # for later use
 exportprocess = None
@@ -3739,6 +3739,7 @@ def loopexport():
             CoreNumberDict[key] = []
             ConnectionsDict[key].append(getattr(obj,"Connection1"))
             ConnectionsDict[key].append(getattr(obj,"Connection2"))
+#            max no of cores is 50
             for i in range(1,51):
                LSignalDict[key].append(getattr(obj,"LSignal"+str(i))) 
                LTerminationDict[key].append(getattr(obj,"LTermination"+str(i)))
@@ -3750,28 +3751,29 @@ def loopexport():
                CoreNumberDict[key].append(getattr(obj,"CoreNumber"+str(i)))
     connection.close()
     storage.close()
-    print("IC-SPM-LIT-6622-01")
-    print("==================")
-    print(ConnectionsDict["IC-SPM-LIT-6622-01"])
-    print(LSignalDict["IC-SPM-LIT-6622-01"])
-    print(LTerminationDict["IC-SPM-LIT-6622-01"])
-    print(LSCRDict["IC-SPM-LIT-6622-01"])
-    print(ColorDict["IC-SPM-LIT-6622-01"])
-    print(RSCRDict["IC-SPM-LIT-6622-01"])
-    print(RTerminationDict["IC-SPM-LIT-6622-01"])
-    print(RSignalDict["IC-SPM-LIT-6622-01"])
-    print(CoreNumberDict["IC-SPM-LIT-6622-01"])
-    print("IC-SPM-IJB-6620-01")
-    print("==================")
-    print(ConnectionsDict["IC-SPM-IJB-6620-01"])
-    print(LSignalDict["IC-SPM-IJB-6620-01"])
-    print(LTerminationDict["IC-SPM-IJB-6620-01"])
-    print(LSCRDict["IC-SPM-IJB-6620-01"])
-    print(ColorDict["IC-SPM-IJB-6620-01"])
-    print(RSCRDict["IC-SPM-IJB-6620-01"])
-    print(RTerminationDict["IC-SPM-IJB-6620-01"])
-    print(RSignalDict["IC-SPM-IJB-6620-01"])
-    print(CoreNumberDict["IC-SPM-IJB-6620-01"])    
+    print (InstrumentList)
+#    print("IC-SPM-LIT-6622-01")
+#    print("==================")
+#    print(ConnectionsDict["IC-SPM-LIT-6622-01"])
+#    print(LSignalDict["IC-SPM-LIT-6622-01"])
+#    print(LTerminationDict["IC-SPM-LIT-6622-01"])
+#    print(LSCRDict["IC-SPM-LIT-6622-01"])
+#    print(ColorDict["IC-SPM-LIT-6622-01"])
+#    print(RSCRDict["IC-SPM-LIT-6622-01"])
+#    print(RTerminationDict["IC-SPM-LIT-6622-01"])
+#    print(RSignalDict["IC-SPM-LIT-6622-01"])
+#    print(CoreNumberDict["IC-SPM-LIT-6622-01"])
+#    print("IC-SPM-IJB-6620-01")
+#    print("==================")
+#    print(ConnectionsDict["IC-SPM-IJB-6620-01"])
+#    print(LSignalDict["IC-SPM-IJB-6620-01"])
+#    print(LTerminationDict["IC-SPM-IJB-6620-01"])
+#    print(LSCRDict["IC-SPM-IJB-6620-01"])
+#    print(ColorDict["IC-SPM-IJB-6620-01"])
+#    print(RSCRDict["IC-SPM-IJB-6620-01"])
+#    print(RTerminationDict["IC-SPM-IJB-6620-01"])
+#    print(RSignalDict["IC-SPM-IJB-6620-01"])
+#    print(CoreNumberDict["IC-SPM-IJB-6620-01"])    
     # Part 3: Compile Loops and Preliminary Check
     LoopDict = {}
     MissingInstrument = []
@@ -3784,7 +3786,8 @@ def loopexport():
                 LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
                 # Loop through the LSignal list to find the Instrument Signal
                 index = 0
-                for LSignal in LSignalDict[Cable]:                   
+                for LSignal in LSignalDict[Cable]:   
+#                    check if instrument tag is included in the signal tag, then append to loop dict.
                     if item in LSignal:
                         LoopDict[item].append(LSignal)
                         LoopDict[item].append(LTerminationDict[Cable][index])
@@ -3806,6 +3809,8 @@ def loopexport():
     # 2nd round
     for item in InstrumentList:
         for Cable in ConnectionsDict:
+            print (LoopDict[item][2])
+            print (ConnectionsDict[Cable][2])
             if ConnectionsDict[Cable][0] == LoopDict[item][2]:   # Connection1 equals Connection2
                 # Loop through the LSignal list to find the Instrument Signal
                 Flag = True

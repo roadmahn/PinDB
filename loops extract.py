@@ -174,6 +174,7 @@ for item in InstrumentList:
                     LoopDict[item].append(RSignalDict[Cable][index])
                 index += 1
             LoopDict[item].append('*')
+    print (LoopDict, "+ new loop")
     if len(LoopDict[item]) == 0:
         MissingInstrument.append(item)
 if len(MissingInstrument) != 0:
@@ -181,7 +182,7 @@ if len(MissingInstrument) != 0:
     InstrumentString = ''
     for item in MissingInstrument:
         InstrumentString += ','+item
-print (LoopDict)
+
 #    tk.messagebox.showwarning(title=None, message="Some Instruments are not terminated.\n"+InstrumentString)
 ## 2nd round
 #for item in InstrumentList:
@@ -242,23 +243,31 @@ print (LoopDict)
 ##                            LoopDict[item].append(RSignalDict[Cable][index])
 ##                        index += 1
 ##                LoopDict[item].append('&')
-#path = os.getcwd()+"\Loops Export.xlsx"
+path = os.getcwd()+"\Loops Export.xlsx"
 ## Remove exisiting collection and create new one
-#if os.path.exists(path):
-#    os.remove(path)
-#time.sleep(2) # To give the os module time to remove the Excel Export File    
-#Xcel = win32com.client.gencache.EnsureDispatch("Excel.Application")
-#Export = Xcel.Workbooks.Add() 
-#Export.SaveAs(path)
-#row = 2
-#for item in InstrumentList:
+if os.path.exists(path):
+    os.remove(path)
+time.sleep(2) # To give the os module time to remove the Excel Export File    
+Xcel = win32com.client.gencache.EnsureDispatch("Excel.Application")
+Loop = Xcel.Workbooks.Add() 
+Loop.SaveAs(path)
+row = 2
+for item in InstrumentList:
 #    Export.ActiveSheet.Cells(row,1).Value = item
 #    row += 1
+    for dictionary in LoopDict:
+        if item == key:
+            Loop.ActiveSheet.Cells(row,1)= LoopDict[key][0]
+            column +=1
+            for i in LoopDict[key]:
+                if i != item:
+                   Loop.ActiveSheet.Cells(row,1) 
+        
 #    LoopString = ','.join(map(str,LoopDict[item]))
 #    Export.ActiveSheet.Cells(row,1).Value = LoopString.split('*')[0]
 #    row += 1
-#    Export.ActiveSheet.Cells(row,1).Value = LoopString.split('*')[1]
+#    Export.ActiveSheet.Cells(row,1).Value = LoopString.split(',')[1]
 #    row += 1
-#Export.ActiveSheet.Range("A:BM").Columns.AutoFit() 
-#Export.Close(SaveChanges=True)        
-#Xcel.Application.Quit()
+Export.ActiveSheet.Range("A:BM").Columns.AutoFit() 
+Export.Close(SaveChanges=True)        
+Xcel.Application.Quit()

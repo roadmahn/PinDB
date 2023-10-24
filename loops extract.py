@@ -257,11 +257,13 @@ for item in InstrumentList:
 #    row += 1
     for dictionary in LoopDict:
         if item == key:
-            Loop.ActiveSheet.Cells(row,1)= LoopDict[key][0]
+            column = 1
+            Loop.ActiveSheet.Cells(row,column)= LoopDict[key][0]
             column +=1
             for i in LoopDict[key]:
                 if i != item:
-                   Loop.ActiveSheet.Cells(row,1) 
+                   Loop.ActiveSheet.Cells(row,column) = i
+                   column +=1
         
 #    LoopString = ','.join(map(str,LoopDict[item]))
 #    Export.ActiveSheet.Cells(row,1).Value = LoopString.split('*')[0]

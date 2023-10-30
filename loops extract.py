@@ -164,10 +164,12 @@ row = 2
 column = 1
 # Part 3: Compile Loops and Preliminary Check
 
+Con2 =[]
 #    MissingInstrument = []
 for item in InstrumentList:
     LoopDict[item] = []
     for Cable in ConnectionsDict:
+        Conn2= {}
         startrow = row
         column = 1
         if ConnectionsDict[Cable][0] == item: # Connection1 equals the Instrument
@@ -179,6 +181,8 @@ for item in InstrumentList:
             Loop.ActiveSheet.Cells(row,column).Value= Cable
             column +=1
             LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+#            make a list for connection 2
+            key = ConnectionsDict[Cable][1]
             Loop.ActiveSheet.Cells(row,column).Value= ConnectionsDict[Cable][1]
             Loop.ActiveSheet.Range("E"+str(row)+":"+"G"+str(row)).Merge()
             # Loop through the LSignal list to find the Instrument Signal
@@ -207,10 +211,12 @@ for item in InstrumentList:
                     Loop.ActiveSheet.Cells(row,column).Value= RTerminationDict[Cable][index]
                     column +=1
                     LoopDict[item].append(RSignalDict[Cable][index])
+                    Conn2[key] = RSignalDict[Cable][index]
                     Loop.ActiveSheet.Cells(row,column).Value= RSignalDict[Cable][index]
                     row += 1
                 index += 1
             LoopDict[item].append('*')
+            Con2.append(Conn2)
 Loop.ActiveSheet.Range("A"+str(startrow)+":"+"N"+str(row-1)).Borders(9).LineStyle = 1 # Continous line
 Loop.ActiveSheet.Range("A"+str(startrow)+":"+"N"+str(row-1)).Borders(7).LineStyle = 1
 Loop.ActiveSheet.Range("A"+str(startrow)+":"+"N"+str(row-1)).Borders(10).LineStyle = 1
@@ -228,7 +234,7 @@ Xcel.Application.Quit()
 
 print ("first round done, starting second round")
 #end of first round
-print (LoopDict)
+#print (Con2)
 #start round 2 scanning
 #    row = 2 
 
@@ -239,68 +245,76 @@ Xcel = win32com.client.gencache.EnsureDispatch("Excel.Application")
 Loop = Xcel.Workbooks.Open(path)   
 row = 2    
 
-for item in InstrumentList:
-    for key in LoopDict:
-        if key == item:
-            if len(LoopDict[item]) == 0: 
-                continue
-            if len(LoopDict[item]) != 0:
-                for Cable in ConnectionsDict:
-#                    if Cable == item:
-            #        print (LoopDict[item][2])
-    #                print (ConnectionsDict[Cable][2])
-                    column = 8
-                    if LoopDict[item][2] == ConnectionsDict[Cable][0]:
-                        print (ConnectionsDict[Cable][0])
-                        print (LoopDict[item][2])
-                        # Loop through the LSignal list to find the Instrument Signal
-                        Flag = True
-                        index = 0
-                        for LSignal in LSignalDict[Cable]:
-    #                        if item == None:
-    #                            continue
-                            if LSignal != None:
-                                if item in LSignal:
-                #                    if item == 'SPM-HS-3501A':
-                #                        print(LSignal)
-                #                        print(index)
-                                    if Flag:
-                                        LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
-                                        Loop.ActiveSheet.Cells(row,column).Value= ConnectionsDict[Cable][0]
-                                        Loop.ActiveSheet.Range("H"+str(row)+":"+"J"+str(row)).Merge()
-                                        column +=3
-                                        LoopDict[item].append(Cable)                     # Add the Cable
-                                        Loop.ActiveSheet.Cells(row,column).Value= Cable
-                                        column +=1
-                                        LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
-                                        Loop.ActiveSheet.Cells(row,column).Value= Cable
-                                        Loop.ActiveSheet.Range("L"+str(row)+":"+"N"+str(row)).Merge()
-                                        row +=1
-                                        Flag = False
-                                    column = 8
-                                    LoopDict[item].append(LSignal)
-                                    Loop.ActiveSheet.Cells(row,column).Value= LSignal
-                                    column +=1
-                                    LoopDict[item].append(LTerminationDict[Cable][index])
-                                    Loop.ActiveSheet.Cells(row,column).Value= LTerminationDict[Cable][index]
-                                    column +=1
-                                    LoopDict[item].append(CoreNumberDict[Cable][index])
-                                    Loop.ActiveSheet.Cells(row,column).Value= CoreNumberDict[Cable][index]
-                                    column +=1
-                                    LoopDict[item].append(ColorDict[Cable][index])
-                                    Loop.ActiveSheet.Cells(row,column).Value= ColorDict[Cable][index]    
-                                    column +=1
-                                    LoopDict[item].append(CoreNumberDict[Cable][index])
-                                    Loop.ActiveSheet.Cells(row,column).Value= CoreNumberDict[Cable][index]
-                                    column +=1
-                                    LoopDict[item].append(RTerminationDict[Cable][index])
-                                    Loop.ActiveSheet.Cells(row,column).Value= RTerminationDict[Cable][index]
-                                    column +=1
-                                    LoopDict[item].append(RSignalDict[Cable][index])
-                                    Loop.ActiveSheet.Cells(row,column).Value= RSignalDict[Cable][index]
-                                    row +=1
-                                index += 1
-                            LoopDict[item].append('+')
+#for item in InstrumentList:
+#    for key in LoopDict:
+#        if key == item:
+#            if len(LoopDict[item]) == 0: 
+##                print(item + "not connected")
+#                continue
+#            if len(LoopDict[item]) != 0:
+#                print(item)
+for dict in Con2:
+#    print(key)
+#    print(dict)
+    for key in dict:
+        print (key)
+        for Cable in ConnectionsDict:
+#            print (Cable)
+            column = 8 
+            if  ConnectionsDict[Cable][0] == key:
+                print(ConnectionsDict[Cable][0])
+                print(key)
+    #            print (ConnectionsDict[Cable][0])
+    #            print (Loop.ActiveSheet.Cells(row,5).Value)
+                # Loop through the LSignal list to find the Instrument Signal
+                Flag = True
+                index = 0
+                for LSignal in LSignalDict[Cable]:
+        #                        if item == None:
+        #                            continue
+                    if LSignal == dict[key]:
+                        
+    #                    if item in LSignal:
+        #                    if item == 'SPM-HS-3501A':
+        #                        print(LSignal)
+        #                        print(index)
+                        if Flag:
+                            LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
+                            Loop.ActiveSheet.Cells(row,column).Value= ConnectionsDict[Cable][0]
+                            Loop.ActiveSheet.Range("H"+str(row)+":"+"J"+str(row)).Merge()
+                            column +=3
+                            LoopDict[item].append(Cable)                     # Add the Cable
+                            Loop.ActiveSheet.Cells(row,column).Value= Cable
+                            column +=1
+                            LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                            Loop.ActiveSheet.Cells(row,column).Value= Cable
+                            Loop.ActiveSheet.Range("L"+str(row)+":"+"N"+str(row)).Merge()
+                            row +=1
+                            Flag = False
+                        column = 8
+                        LoopDict[item].append(LSignal)
+                        Loop.ActiveSheet.Cells(row,column).Value= LSignal
+                        column +=1
+                        LoopDict[item].append(LTerminationDict[Cable][index])
+                        Loop.ActiveSheet.Cells(row,column).Value= LTerminationDict[Cable][index]
+                        column +=1
+                        LoopDict[item].append(CoreNumberDict[Cable][index])
+                        Loop.ActiveSheet.Cells(row,column).Value= CoreNumberDict[Cable][index]
+                        column +=1
+                        LoopDict[item].append(ColorDict[Cable][index])
+                        Loop.ActiveSheet.Cells(row,column).Value= ColorDict[Cable][index]    
+                        column +=1
+                        LoopDict[item].append(CoreNumberDict[Cable][index])
+                        Loop.ActiveSheet.Cells(row,column).Value= CoreNumberDict[Cable][index]
+                        column +=1
+                        LoopDict[item].append(RTerminationDict[Cable][index])
+                        Loop.ActiveSheet.Cells(row,column).Value= RTerminationDict[Cable][index]
+                        column +=1
+                        LoopDict[item].append(RSignalDict[Cable][index])
+                        Loop.ActiveSheet.Cells(row,column).Value= RSignalDict[Cable][index]
+                        row +=1
+                    index += 1
+                LoopDict[item].append('+')
 ###    print (LoopDict, "+ new loop")
 ##    if len(LoopDict[item]) == 0:
 ##        MissingInstrument.append(item)

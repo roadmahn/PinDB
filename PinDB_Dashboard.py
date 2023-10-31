@@ -57,7 +57,7 @@ from ZODB import FileStorage, DB
 import transaction
 
 # global variables
-addr = '10.175.13.199', 8091 # This is the address of the ZEO Server
+addr = '10.175.13.199', 8092 # This is the address of the ZEO Server
 DS_List = os.listdir('Datasheets')
 #DB_List = os.listdir('Databases') # for later use
 exportprocess = None
@@ -829,10 +829,10 @@ def connections():
         progress.update()
         def contained(taglist,polylinelist):
             # this function checks whether a tag is surrounded by
-            # a closed polyline. This is regarded as a enclosure
+            # a closed polyline. This is regarded as an enclosure
             x1 = taglist[0][0]
             y1 = taglist[0][1]
-            x2 = taglist[1][0]
+            x2 = taglist[1][0] 
             y2 = taglist[1][1]
             x3 = polylinelist[0][0]
             y3 = polylinelist[0][1]
@@ -2036,9 +2036,10 @@ def retain():
         Datasheet.ActiveSheet.Range(Object.FieldsDict[key]).Value = getattr(Object, key)
         print(Object.FieldsDict[key])
 #---------------------------------------------------------------------------------------------
-# prepare validation lists of cables and of instruments for use in drop-down list   
+# prepare validation lists of cables, instruments and enclosures for use in drop-down lists   
     InstrumentsCount = 1
     CableCount = 1
+    EnclosureCount = 1
 #    directory = os.getcwd()+"/Databases"
 #    filename = "/Lufeng.fs"
 #    storage = FileStorage.FileStorage(directory+filename)
@@ -2048,7 +2049,8 @@ def retain():
     root = connection.root()
     InstrumentsValidateList = []
     CableValidateList = []
-    CableValidateList2core = []     
+    CableValidateList2core = []
+    EnclosureValidateList = []    
     for key in root:
         obj = root[key]
         if not isinstance(obj,DS_BES_Cable):
@@ -2060,7 +2062,10 @@ def retain():
                 CableCount += 1
             if obj.CoreConfiguration in Core2or3TypeList:
                 CableValidateList2core.append(key)
-                CableCount += 1                
+                CableCount += 1
+        if isinstance(obj,DS_BES_Enclosure):
+            EnclosureValidateList.append(key)
+            EnclosureCount += 1                
     connection.close()
     storage.close()
     #print(CableValidateList2core)
@@ -2133,7 +2138,7 @@ def retain():
         # To provide a pull down list in the datasheet of cables the instruments can connect to 
         print("Instrument chosen in retain")
         Range = "=$EA$2:$EA$" + str(len(CableValidateList)+1)
-        Range2 = "=$DZ$2:$DZ$" + str(len(CableValidateList2core)+1)        
+        Range2 = "=$EB$2:$EB$" + str(len(CableValidateList2core)+1)        
         counter = 2
         CableValidateList2core.sort()
         CableValidateList.sort()
@@ -2166,7 +2171,7 @@ def retain():
     if  ObjectName == "DS_BES_Enclosure.xlsx":
         print("Enclosure chosen in retain")
         Range = "=$EA$2:$EA$" + str(len(CableValidateList)+len(Spares_List)+1)  
-        Range2= "=$DZ$2:$DZ$" + str(len(CableValidateList2core)+len(Spares_List)+1) 
+        Range2= "=$EB$2:$EB$" + str(len(CableValidateList2core)+len(Spares_List)+1) 
 #        DZ is 130 column
         counter = 2
         CableValidateList2core.sort()
@@ -2188,23 +2193,23 @@ def retain():
             # add spares to the CableValidateList because spares only appear in Enclosures
             CableValidateList2core += Spares_List
             for item in CableValidateList2core:
-                Datasheet.ActiveSheet.Cells(counter,130).Value = item # 130 is column DZ
+                Datasheet.ActiveSheet.Cells(counter,132).Value = item # 130 is column EB
                 counter += 1
             for i in range(1,17):        
                 Connection = "_Connection"+str(i)
                 if Datasheet.ActiveSheet.Range (Connection).Validation.InCellDropdown == True:
                     Datasheet.ActiveSheet.Range (Connection).Validation.Delete()
                 Datasheet.ActiveSheet.Range (Connection).Validation.Add(3, 1, 3, Range2)
-                Datasheet.ActiveSheet.Range(Connection).Validation.InCellDropdown = True
-                                    
+                Datasheet.ActiveSheet.Range(Connection).Validation.InCellDropdown = True                                   
     if  ObjectName == "DS_BES_Slipring.xlsx":
         print("Slipring chosen in retain")
-        Range = "=$EA$2:$EA$" + str(len(CableValidateList)+1)        
+        Range = "=$EA$2:$EA$" + str(len(CableValidateList)+1)
+        Range2 = "=$EB$2:$EB$" + str(len(EnclosureValidateList)+1)        
         counter = 2
         CableValidateList.sort()
         if CableValidateList:
             for item in CableValidateList:
-                Datasheet.ActiveSheet.Cells(counter,131).Value = item
+                Datasheet.ActiveSheet.Cells(counter,131).Value = item # 131 is column EA
                 counter += 1
             for i in range(1,39):
                 Connection = "_Connection"+str(i)
@@ -2213,7 +2218,19 @@ def retain():
             for i in range(1,39):
                 Connection = "_Connection"+str(i)
                 Datasheet.ActiveSheet.Range(Connection).Validation.Add(3, 1, 3, Range)
-                Datasheet.ActiveSheet.Range(Connection).Validation.InCellDropdown = True                  
+                Datasheet.ActiveSheet.Range(Connection).Validation.InCellDropdown = True
+        counter = 2
+        EnclosureValidateList.sort()
+        if EnclosureValidateList:
+            for item in EnclosureValidateList:
+                Datasheet.ActiveSheet.Cells(counter,132).Value = item # 130 is column DZ
+                counter += 1
+            for i in range(1,7):
+                Enclosure = "_JunctionBox"+str(i)
+                if Datasheet.ActiveSheet.Range(Enclosure).Validation.InCellDropdown == True:
+                    Datasheet.ActiveSheet.Range(Enclosure).Validation.Delete()
+                Datasheet.ActiveSheet.Range(Enclosure).Validation.Add(3, 1, 3, Range2)
+                Datasheet.ActiveSheet.Range(Enclosure).Validation.InCellDropdown = True                 
     Xcel.Visible = True
     RETAIN = True
 #    print(Object.InternalFieldsDict)         
@@ -2303,6 +2320,11 @@ def commit():
         Datasheet.ActiveSheet.Cells(i,130).Value = '' # 131 is column DZ        
         Datasheet.ActiveSheet.Cells(i,131).Value = '' # 131 is column EA
         Datasheet.ActiveSheet.Cells(i,131).Value = '' # 132 is column EB
+#    if type(Object).__name__ == 'DS_BES_Slipring':
+#        for i in range(1,7):
+#            Enclosure = "_JunctionBox"+str(i)
+#            Datasheet.ActiveSheet.Range(Enclosure).Validation.Delete
+#            Datasheet.ActiveSheet.Range(Enclosure).Validation.InCellDropdown = False
     Object = None
     # Before closing Database connection and storage, update OBJ_list
     OBJ_List = []
@@ -3702,11 +3724,12 @@ def terminationimport():
         btn_terminationimport.config(state=tk.NORMAL)
 
 def loopexport():
-    global Instrumentation
     print("LOOPEXPORT")
+    global Instrumentation
+    global CableTypeDict    
     # Part 1: Collecting required data to produce loops
-    InstrumentList = []
-    CableList = []
+    InstrumentDict = {}
+    CableModelDict = {}
     ConnectionsDict = {}
     LSignalDict = {}
     LTerminationDict = {}
@@ -3716,6 +3739,8 @@ def loopexport():
     RTerminationDict = {}
     RSignalDict = {}
     CoreNumberDict = {}
+    SlipringJBsDict = {}
+    # Get the relevant info from the Database
     storage = ClientStorage.ClientStorage(addr)             
     db = DB(storage)
     connection = db.open()
@@ -3724,10 +3749,12 @@ def loopexport():
         obj = root[key]
         if obj.__class__.__name__ in Instrumentation:
             #print(obj.__class__.__name__)
-            InstrumentList.append(key)
+            InstrumentDict[key] = []
+            InstrumentDict[key].append(obj.ServiceDescription)
+            InstrumentDict[key].append(obj.InstrumentType)
         #progress.update()
         if isinstance(obj,DS_BES_Cable):
-            CableList.append(key)
+            CableModelDict[key]= obj.Model
             ConnectionsDict[key] = []
             LSignalDict[key] = []
             LTerminationDict[key] = []
@@ -3739,7 +3766,6 @@ def loopexport():
             CoreNumberDict[key] = []
             ConnectionsDict[key].append(getattr(obj,"Connection1"))
             ConnectionsDict[key].append(getattr(obj,"Connection2"))
-#            max no of cores is 50
             for i in range(1,51):
                LSignalDict[key].append(getattr(obj,"LSignal"+str(i))) 
                LTerminationDict[key].append(getattr(obj,"LTermination"+str(i)))
@@ -3749,46 +3775,36 @@ def loopexport():
                RTerminationDict[key].append(getattr(obj,"RTermination"+str(i)))
                RSignalDict[key].append(getattr(obj,"RSignal"+str(i))) 
                CoreNumberDict[key].append(getattr(obj,"CoreNumber"+str(i)))
+        if isinstance(obj,DS_BES_Slipring):
+            SlipringJBsDict[key] = [] # first append the Slipring itself
+            for i in range(1,7):
+                if not (getattr(obj,"JunctionBox"+str(i)) == "" or getattr(obj,"JunctionBox"+str(i)) == None):
+                    SlipringJBsDict[(getattr(obj,"JunctionBox"+str(i)))] = []
+    for Cable in ConnectionsDict:
+        if ConnectionsDict[Cable][0] in SlipringJBsDict:
+            SlipringJBsDict[ConnectionsDict[Cable][0]].append(Cable)
+        if ConnectionsDict[Cable][1] in SlipringJBsDict:
+            SlipringJBsDict[ConnectionsDict[Cable][1]].append(Cable)                    
     connection.close()
-    storage.close()
-    print (InstrumentList)
-#    print("IC-SPM-LIT-6622-01")
-#    print("==================")
-#    print(ConnectionsDict["IC-SPM-LIT-6622-01"])
-#    print(LSignalDict["IC-SPM-LIT-6622-01"])
-#    print(LTerminationDict["IC-SPM-LIT-6622-01"])
-#    print(LSCRDict["IC-SPM-LIT-6622-01"])
-#    print(ColorDict["IC-SPM-LIT-6622-01"])
-#    print(RSCRDict["IC-SPM-LIT-6622-01"])
-#    print(RTerminationDict["IC-SPM-LIT-6622-01"])
-#    print(RSignalDict["IC-SPM-LIT-6622-01"])
-#    print(CoreNumberDict["IC-SPM-LIT-6622-01"])
-#    print("IC-SPM-IJB-6620-01")
-#    print("==================")
-#    print(ConnectionsDict["IC-SPM-IJB-6620-01"])
-#    print(LSignalDict["IC-SPM-IJB-6620-01"])
-#    print(LTerminationDict["IC-SPM-IJB-6620-01"])
-#    print(LSCRDict["IC-SPM-IJB-6620-01"])
-#    print(ColorDict["IC-SPM-IJB-6620-01"])
-#    print(RSCRDict["IC-SPM-IJB-6620-01"])
-#    print(RTerminationDict["IC-SPM-IJB-6620-01"])
-#    print(RSignalDict["IC-SPM-IJB-6620-01"])
-#    print(CoreNumberDict["IC-SPM-IJB-6620-01"])    
+    storage.close()  
     # Part 3: Compile Loops and Preliminary Check
+    # A loop chain is the base, i.e. Instrument--- Cable1---JB1---Cable2--.....---CableN---JBN---LCP
+    # Start with the Instrument
     LoopDict = {}
+    ScreenDict = {}
     MissingInstrument = []
-    for item in InstrumentList:
+    for item in InstrumentDict:
         LoopDict[item] = []
+        ScreenDict[item] = []
         for Cable in ConnectionsDict:
             if ConnectionsDict[Cable][0] == item: # Connection1 equals the Instrument
                 LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
                 LoopDict[item].append(Cable)                     # Add the Cable
-                LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2              
                 # Loop through the LSignal list to find the Instrument Signal
                 index = 0
-                for LSignal in LSignalDict[Cable]:   
-#                    check if instrument tag is included in the signal tag, then append to loop dict.
-                    if item in LSignal:
+                for LSignal in LSignalDict[Cable]:                   
+                    if LSignal != None and item in LSignal:
                         LoopDict[item].append(LSignal)
                         LoopDict[item].append(LTerminationDict[Cable][index])
                         LoopDict[item].append(CoreNumberDict[Cable][index])
@@ -3797,7 +3813,10 @@ def loopexport():
                         LoopDict[item].append(RTerminationDict[Cable][index])
                         LoopDict[item].append(RSignalDict[Cable][index])
                     index += 1
-                LoopDict[item].append('*')
+                ScreenDict[item].append(LSCRDict[Cable])
+                ScreenDict[item].append(RSCRDict[Cable])
+                ScreenDict[item].append(CableTypeDict[CableModelDict[Cable]][-1])
+                LoopDict[item].append('PART1')
         if len(LoopDict[item]) == 0:
             MissingInstrument.append(item)
     if len(MissingInstrument) != 0:
@@ -3807,64 +3826,336 @@ def loopexport():
             InstrumentString += ','+item
         tk.messagebox.showwarning(title=None, message="Some Instruments are not terminated.\n"+InstrumentString)
     # 2nd round
-    for item in InstrumentList:
+    # Here it might be that the loop chain ends on a slipring JB
+    for item in InstrumentDict:
         for Cable in ConnectionsDict:
-            print (LoopDict[item][2])
-            print (ConnectionsDict[Cable][2])
             if ConnectionsDict[Cable][0] == LoopDict[item][2]:   # Connection1 equals Connection2
                 # Loop through the LSignal list to find the Instrument Signal
                 Flag = True
                 index = 0
-                for LSignal in LSignalDict[Cable]:
-                    if item in LSignal:
-                        if item == 'SPM-HS-3501A':
-                            print(LSignal)
-                            print(index)
-                        if Flag:
-                            LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
-                            LoopDict[item].append(Cable)                     # Add the Cable
-                            LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
-                            Flag = False
-                        LoopDict[item].append(LSignal)
-                        LoopDict[item].append(LTerminationDict[Cable][index])
-                        LoopDict[item].append(CoreNumberDict[Cable][index])
-                        LoopDict[item].append(ColorDict[Cable][index])                        
-                        LoopDict[item].append(CoreNumberDict[Cable][index])
-                        LoopDict[item].append(RTerminationDict[Cable][index])
-                        LoopDict[item].append(RSignalDict[Cable][index])
-                    index += 1
-                LoopDict[item].append('+')
-    print(LoopDict["SPM-LIT-6622"])
-#    # 3rd round
-#    for item in InstrumentList:
-#        print(LoopDict[item][-1:])
-#        if LoopDict[item][-1:] != '*':
-#            i = LoopDict[item].index('*')+3
-#            print(item,LoopDict[item][i])
-#            for Cable in ConnectionsDict:
-#                if ConnectionsDict[Cable][0] == LoopDict[item][i]:  # Connection1 equals Connection2
-#                    # Loop through the LSignal list to find the Instrument Signal
-#                    Flag = True
-#                    index = 0
-#                    for LSignal in LSignalDict[Cable]:
-#                        if item in LSignal:
-#                            if item == 'SPM-HS-3501A':
-#                                print(LSignal)
-#                                print(index)
-#                            if Flag:
-#                                LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
-#                                LoopDict[item].append(Cable)                     # Add the Cable
-#                                LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
-#                                Flag = False
-#                            LoopDict[item].append(LSignal)
-#                            LoopDict[item].append(LTerminationDict[Cable][index])
-#                            LoopDict[item].append(CoreNumberDict[Cable][index])
-#                            LoopDict[item].append(ColorDict[Cable][index])                        
-#                            LoopDict[item].append(CoreNumberDict[Cable][index])
-#                            LoopDict[item].append(RTerminationDict[Cable][index])
-#                            LoopDict[item].append(RSignalDict[Cable][index])
-#                        index += 1
-#                LoopDict[item].append('&')
+                if LoopDict[item][2] not in SlipringJBsDict:
+                    for LSignal in LSignalDict[Cable]:
+                        if LSignal != None and item in LSignal:
+    #                        if item == 'SPM-HS-3501A':
+    #                            print(LSignal)
+    #                            print(index)
+                            if Flag:
+                                LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
+                                LoopDict[item].append(Cable)                     # Add the Cable
+                                LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                                Flag = False
+                            LoopDict[item].append(LSignal)
+                            LoopDict[item].append(LTerminationDict[Cable][index])
+                            LoopDict[item].append(CoreNumberDict[Cable][index])
+                            LoopDict[item].append(ColorDict[Cable][index])                        
+                            LoopDict[item].append(CoreNumberDict[Cable][index])
+                            LoopDict[item].append(RTerminationDict[Cable][index])
+                            LoopDict[item].append(RSignalDict[Cable][index])
+                        index += 1
+                if LoopDict[item][2] in SlipringJBsDict:
+                    for element in SlipringJBsDict:
+                        if element != LoopDict[item][2]:
+                            for Cable in SlipringJBsDict[element]:
+                                for LSignal in LSignalDict[Cable]:
+                                    Flag = True
+                                    index = 0                                        
+                                    if LSignal != None and item in LSignal:
+                                        if Flag:
+                                            LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
+                                            LoopDict[item].append(Cable)                     # Add the Cable
+                                            LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                                            Flag = False
+                                        LoopDict[item].append(LSignal)
+                                        LoopDict[item].append(LTerminationDict[Cable][index])
+                                        LoopDict[item].append(CoreNumberDict[Cable][index])
+                                        LoopDict[item].append(ColorDict[Cable][index])                        
+                                        LoopDict[item].append(CoreNumberDict[Cable][index])
+                                        LoopDict[item].append(RTerminationDict[Cable][index])
+                                        LoopDict[item].append(RSignalDict[Cable][index])
+                                    index += 1                           
+        LoopDict[item].append('PART2')
+    # 3rd round
+    for item in InstrumentDict:
+        condition = ('PART1' in LoopDict[item]) and ('PART2' in LoopDict[item]) and\
+        len(LoopDict[item][LoopDict[item].index('PART1'):LoopDict[item].index('PART2')]) > 1        
+        if condition:        
+        # [LoopDict[item].index('PART1'):LoopDict[item].index('PART2')] produces ['PART1'] if
+        # there is nothing between PART1 and PART2 therefore 
+        # len(LoopDict[item][LoopDict[item].index('PART1'):LoopDict[item].index('PART2')]) equals 1
+            i = LoopDict[item].index('PART1')+3
+            #print(item,LoopDict[item][i])
+            for Cable in ConnectionsDict:
+                if ConnectionsDict[Cable][0] == LoopDict[item][i]:  # Connection1 equals Connection2
+                    # Loop through the LSignal list to find the Instrument Signal
+                    Flag = True
+                    index = 0
+                    if LoopDict[item][i] not in SlipringJBsDict:
+                        for LSignal in LSignalDict[Cable]:
+                            if LSignal != None and item in LSignal:
+        #                        if item == 'SPM-HS-3501A':
+        #                            print(LSignal)
+        #                            print(index)
+                                if Flag:
+                                    LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
+                                    LoopDict[item].append(Cable)                     # Add the Cable
+                                    LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                                    Flag = False
+                                LoopDict[item].append(LSignal)
+                                LoopDict[item].append(LTerminationDict[Cable][index])
+                                LoopDict[item].append(CoreNumberDict[Cable][index])
+                                LoopDict[item].append(ColorDict[Cable][index])                        
+                                LoopDict[item].append(CoreNumberDict[Cable][index])
+                                LoopDict[item].append(RTerminationDict[Cable][index])
+                                LoopDict[item].append(RSignalDict[Cable][index])
+                            index += 1
+                    if LoopDict[item][i] in SlipringJBsDict:
+                        for element in SlipringJBsDict:
+                            if element != LoopDict[item][i]:
+                                for Cable in SlipringJBsDict[element]:
+                                    for LSignal in LSignalDict[Cable]:
+                                        Flag = True
+                                        index = 0                                        
+                                        if LSignal != None and item in LSignal:
+                                            if Flag:
+                                                LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
+                                                LoopDict[item].append(Cable)                     # Add the Cable
+                                                LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                                                Flag = False
+                                            LoopDict[item].append(LSignal)
+                                            LoopDict[item].append(LTerminationDict[Cable][index])
+                                            LoopDict[item].append(CoreNumberDict[Cable][index])
+                                            LoopDict[item].append(ColorDict[Cable][index])                        
+                                            LoopDict[item].append(CoreNumberDict[Cable][index])
+                                            LoopDict[item].append(RTerminationDict[Cable][index])
+                                            LoopDict[item].append(RSignalDict[Cable][index])
+                                        index += 1           
+        LoopDict[item].append('PART3')
+    # 4th round
+    for item in InstrumentDict:
+        condition = ('PART2' in LoopDict[item]) and ('PART3' in LoopDict[item]) and\
+        len(LoopDict[item][LoopDict[item].index('PART2'):LoopDict[item].index('PART3')]) > 1        
+        if condition:
+            i = LoopDict[item].index('PART2')+3
+            #print(item,LoopDict[item][i])
+            #print(item,LoopDict[item][i])
+            for Cable in ConnectionsDict:
+                if ConnectionsDict[Cable][0] == LoopDict[item][i]:  # Connection1 equals Connection2
+                    # Loop through the LSignal list to find the Instrument Signal
+                    Flag = True
+                    index = 0
+                    if LoopDict[item][i] not in SlipringJBsDict:
+                        for LSignal in LSignalDict[Cable]:
+                            if LSignal != None and item in LSignal:
+        #                        if item == 'SPM-HS-3501A':
+        #                            print(LSignal)
+        #                            print(index)
+                                if Flag:
+                                    LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
+                                    LoopDict[item].append(Cable)                     # Add the Cable
+                                    LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                                    Flag = False
+                                LoopDict[item].append(LSignal)
+                                LoopDict[item].append(LTerminationDict[Cable][index])
+                                LoopDict[item].append(CoreNumberDict[Cable][index])
+                                LoopDict[item].append(ColorDict[Cable][index])                        
+                                LoopDict[item].append(CoreNumberDict[Cable][index])
+                                LoopDict[item].append(RTerminationDict[Cable][index])
+                                LoopDict[item].append(RSignalDict[Cable][index])
+                            index += 1
+                    if LoopDict[item][i] in SlipringJBsDict:
+                        for element in SlipringJBsDict:
+                            if element != LoopDict[item][i]:
+                                for Cable in SlipringJBsDict[element]:
+                                    Flag = True
+                                    index = 0                                    
+                                    for LSignal in LSignalDict[Cable]:
+                                        if LSignal != None and item in LSignal:
+                                            if Flag:
+                                                LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
+                                                LoopDict[item].append(Cable)                     # Add the Cable
+                                                LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                                                Flag = False
+                                            LoopDict[item].append(LSignal)
+                                            LoopDict[item].append(LTerminationDict[Cable][index])
+                                            LoopDict[item].append(CoreNumberDict[Cable][index])
+                                            LoopDict[item].append(ColorDict[Cable][index])                        
+                                            LoopDict[item].append(CoreNumberDict[Cable][index])
+                                            LoopDict[item].append(RTerminationDict[Cable][index])
+                                            LoopDict[item].append(RSignalDict[Cable][index])
+                                        index += 1           
+            LoopDict[item].append('PART4')          
+#    print(LoopDict["SPM-LIT-3521"],len(LoopDict["SPM-LIT-3521"]))
+    # 5th round
+    for item in InstrumentDict:
+        condition = ('PART3' in LoopDict[item]) and ('PART4' in LoopDict[item]) and\
+        len(LoopDict[item][LoopDict[item].index('PART3'):LoopDict[item].index('PART4')]) > 1
+        if condition:
+            i = LoopDict[item].index('PART3')+3
+            #print(item,LoopDict[item][i])
+            #print(item,LoopDict[item][i])
+            for Cable in ConnectionsDict:
+                if ConnectionsDict[Cable][0] == LoopDict[item][i]:  # Connection1 equals Connection2
+                    # Loop through the LSignal list to find the Instrument Signal
+                    Flag = True
+                    index = 0
+                    if LoopDict[item][i] not in SlipringJBsDict:
+                        for LSignal in LSignalDict[Cable]:
+                            if LSignal != None and item in LSignal:
+        #                        if item == 'SPM-HS-3501A':
+        #                            print(LSignal)
+        #                            print(index)
+                                if Flag:
+                                    LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
+                                    LoopDict[item].append(Cable)                     # Add the Cable
+                                    LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                                    Flag = False
+                                LoopDict[item].append(LSignal)
+                                LoopDict[item].append(LTerminationDict[Cable][index])
+                                LoopDict[item].append(CoreNumberDict[Cable][index])
+                                LoopDict[item].append(ColorDict[Cable][index])                        
+                                LoopDict[item].append(CoreNumberDict[Cable][index])
+                                LoopDict[item].append(RTerminationDict[Cable][index])
+                                LoopDict[item].append(RSignalDict[Cable][index])
+                            index += 1
+                    if LoopDict[item][i] in SlipringJBsDict:
+                        for element in SlipringJBsDict:
+                            if element != LoopDict[item][i]:
+                                for Cable in SlipringJBsDict[element]:
+                                    Flag = True
+                                    index = 0                                      
+                                    for LSignal in LSignalDict[Cable]:                                      
+                                        if LSignal != None and item in LSignal:
+                                            if Flag:
+                                                LoopDict[item].append(ConnectionsDict[Cable][0]) # Add Connection 1
+                                                LoopDict[item].append(Cable)                     # Add the Cable
+                                                LoopDict[item].append(ConnectionsDict[Cable][1]) # Add Connection 2
+                                                Flag = False
+                                            LoopDict[item].append(LSignal)
+                                            LoopDict[item].append(LTerminationDict[Cable][index])
+                                            LoopDict[item].append(CoreNumberDict[Cable][index])
+                                            LoopDict[item].append(ColorDict[Cable][index])                        
+                                            LoopDict[item].append(CoreNumberDict[Cable][index])
+                                            LoopDict[item].append(RTerminationDict[Cable][index])
+                                            LoopDict[item].append(RSignalDict[Cable][index])
+                                        index += 1           
+            LoopDict[item].append('PART5')           
+#    print(LoopDict["SPM-LIT-3521"],len(LoopDict["SPM-LIT-3521"]))
+#    Export the information to an Excel Sheet    
+    def LoopBlock(List,Screen,Row,Column):
+        global rgb
+        row = Row
+        startrow = row
+        column = Column
+        startcolumn = column
+        #print(List)
+        for i in range(0,len(List)):
+            if i == 0:
+                Export.ActiveSheet.Cells(row,column).Value = List[i]
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Range(Export.ActiveSheet.Cells(row,column),Export.ActiveSheet.Cells(row,column+1)).Merge()
+                Export.ActiveSheet.Range(Export.ActiveSheet.Cells(row,column),Export.ActiveSheet.Cells(row,column+1)).Borders(9).Weight = 2
+                Export.ActiveSheet.Range(Export.ActiveSheet.Cells(row,column),Export.ActiveSheet.Cells(row,column+1)).Borders(10).Weight = 2
+                Export.ActiveSheet.Cells(row,column).Interior.Color = rgbToInt((255,242,204))
+                column += 2
+            if i == 1:
+                Export.ActiveSheet.Cells(row,column).Value = List[i]
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Range(Export.ActiveSheet.Cells(row,column),Export.ActiveSheet.Cells(row,column+2)).Merge()
+                Export.ActiveSheet.Range(Export.ActiveSheet.Cells(row,column),Export.ActiveSheet.Cells(row,column+2)).Borders(9).Weight = 2
+                Export.ActiveSheet.Range(Export.ActiveSheet.Cells(row,column),Export.ActiveSheet.Cells(row,column+2)).Borders(10).Weight = 2                
+                Export.ActiveSheet.Cells(row,column).Interior.Color = rgbToInt((255,255,0))
+                column += 3
+            if i == 2:
+                Export.ActiveSheet.Cells(row,column).Value = List[i]
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Range(Export.ActiveSheet.Cells(row,column),Export.ActiveSheet.Cells(row,column+1)).Merge()
+                Export.ActiveSheet.Range(Export.ActiveSheet.Cells(row,column),Export.ActiveSheet.Cells(row,column+1)).Borders(9).Weight = 2                
+                Export.ActiveSheet.Cells(row,column).Interior.Color = rgbToInt((255,242,204))
+                row += 1
+                column = Column
+                Export.ActiveSheet.Cells(row,column).Value = "Signal"
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Cells(row,column).Borders(9).Weight = 2
+                Export.ActiveSheet.Cells(row,column).Borders(10).Weight = 2
+                column += 1
+                Export.ActiveSheet.Cells(row,column).Value = "Term#"
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Cells(row,column).Borders(9).Weight = 2
+                Export.ActiveSheet.Cells(row,column).Borders(10).Weight = 2
+                column += 1
+                Export.ActiveSheet.Cells(row,column).Value = "Core#"
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Cells(row,column).Borders(9).Weight = 2
+                Export.ActiveSheet.Cells(row,column).Borders(10).Weight = 2
+                column += 1
+                Export.ActiveSheet.Cells(row,column).Value = "Color"
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Cells(row,column).Borders(9).Weight = 2
+                Export.ActiveSheet.Cells(row,column).Borders(10).Weight = 2
+                column += 1
+                Export.ActiveSheet.Cells(row,column).Value = "Core#"
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Cells(row,column).Borders(9).Weight = 2
+                Export.ActiveSheet.Cells(row,column).Borders(10).Weight = 2
+                column += 1            
+                Export.ActiveSheet.Cells(row,column).Value = "Term#"
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Cells(row,column).Borders(9).Weight = 2
+                Export.ActiveSheet.Cells(row,column).Borders(10).Weight = 2
+                column += 1
+                Export.ActiveSheet.Cells(row,column).Value = "Signal"
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Cells(row,column).Borders(9).Weight = 2
+                Export.ActiveSheet.Cells(row,column).Borders(10).Weight = 2
+                column += 1
+                lastcolumn = column-1
+            if i == 3:
+                 column = Column
+                 row += 1
+            if i >= 3:
+                #print('Value',List[i])
+                Export.ActiveSheet.Cells(row,column).Value = List[i]
+                Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+                Export.ActiveSheet.Cells(row,column).Borders(9).Weight = 2
+                Export.ActiveSheet.Cells(row,column).Borders(10).Weight = 2
+                column += 1
+                if (i-2) % 7 == 0:
+                    column = Column
+                    row += 1
+        if Screen != None:
+            column = Column
+            Export.ActiveSheet.Cells(row,column).Borders(10).Weight = 2
+            Export.ActiveSheet.Cells(row,column+1).Value = Screen[0]
+            Export.ActiveSheet.Cells(row,column+1).HorizontalAlignment = -4108
+            Export.ActiveSheet.Cells(row,column+1).Borders(10).Weight = 2
+            if Screen[2] == 'IS':
+                Screen[2] = 'SCR'
+            Export.ActiveSheet.Cells(row,column+2).Value = Screen[2]
+            Export.ActiveSheet.Cells(row,column+2).HorizontalAlignment = -4108
+            Export.ActiveSheet.Cells(row,column+2).Borders(10).Weight = 2
+            Export.ActiveSheet.Cells(row,column+4).Value = Screen[2]
+            Export.ActiveSheet.Cells(row,column+4).HorizontalAlignment = -4108
+            Export.ActiveSheet.Cells(row,column+4).Borders(10).Weight = 2
+            Export.ActiveSheet.Cells(row,column+5).Value = Screen[1]
+            Export.ActiveSheet.Cells(row,column+5).HorizontalAlignment = -4108
+        Address1 = Export.ActiveSheet.Cells(startrow,startcolumn).Address  
+        Address1.replace('$','')                  
+        Address2 = Export.ActiveSheet.Cells(row,lastcolumn).Address
+        Address2.replace('$','')         
+        BlockRange = Address1+':'+Address2
+        Export.ActiveSheet.Range(BlockRange).Borders(7).Weight = 4
+        Export.ActiveSheet.Range(BlockRange).Borders(8).Weight = 4        
+        Export.ActiveSheet.Range(BlockRange).Borders(9).Weight = 4
+        Export.ActiveSheet.Range(BlockRange).Borders(10).Weight = 4
+        Export.ActiveSheet.Range("A"+str(startrow)).Borders(8).Weight = 4        
+        Export.ActiveSheet.Range("A"+str(startrow)).Borders(9).Weight = 2         
+        Export.ActiveSheet.Range("A"+str(row)).Borders(9).Weight = 4          
+        Export.ActiveSheet.Range("B"+str(startrow)+":"+"B"+str(row)).Borders(7).Weight = 4         
+        Export.ActiveSheet.Range("B"+str(startrow)).Borders(8).Weight = 4
+        Export.ActiveSheet.Range("B"+str(startrow)).Borders(9).Weight = 2        
+        Export.ActiveSheet.Range("B"+str(row)).Borders(9).Weight = 4        
+        # End of LoopBlock function
+#    print(LoopDict["SPM-HS-3501B"],len(LoopDict["SPM-HS-3501B"]))
     path = os.getcwd()+"\Loops Export.xlsx"
     # Remove exisiting collection and create new one
     if os.path.exists(path):
@@ -3873,16 +4164,48 @@ def loopexport():
     Xcel = win32com.client.gencache.EnsureDispatch("Excel.Application")
     Export = Xcel.Workbooks.Add() 
     Export.SaveAs(path)
-    row = 2
-    for item in InstrumentList:
-        Export.ActiveSheet.Cells(row,1).Value = item
-        row += 1
-        LoopString = ','.join(map(str,LoopDict[item]))
-        Export.ActiveSheet.Cells(row,1).Value = LoopString.split('*')[0]
-        row += 1
-        Export.ActiveSheet.Cells(row,1).Value = LoopString.split('*')[1]
-        row += 1
-    Export.ActiveSheet.Range("A:BM").Columns.AutoFit() 
+    Xcel.Visible = True
+    row = 1
+    column = 1
+    xlUp = -4162
+    for item in InstrumentDict:
+        screen = ScreenDict[item]
+        l1, l2, l3, l4, l5 = False, False, False, False, False
+        l1 = LoopDict[item][:LoopDict[item].index('PART1')]       
+        l2 = LoopDict[item][LoopDict[item].index('PART1')+1:LoopDict[item].index('PART2')]
+        if 'PART3' in LoopDict[item]:
+            l3 = LoopDict[item][LoopDict[item].index('PART2')+1:LoopDict[item].index('PART3')]
+        if 'PART4' in LoopDict[item]:
+            l4 = LoopDict[item][LoopDict[item].index('PART3')+1:LoopDict[item].index('PART4')]         
+        if 'PART5' in LoopDict[item]:
+            l5 = LoopDict[item][LoopDict[item].index('PART4')+1:LoopDict[item].index('PART5')] 
+        Export.ActiveSheet.Cells(row,column).Value = "SERVICE DESCRIPTION"
+        Export.ActiveSheet.Cells(row,column).HorizontalAlignment = -4108
+        Export.ActiveSheet.Cells(row+1,column).Value = InstrumentDict[item][0]
+        Export.ActiveSheet.Cells(row+1,column).HorizontalAlignment = -4108        
+        Export.ActiveSheet.Cells(row,column+1).Value = item
+        Export.ActiveSheet.Cells(row,column+1).HorizontalAlignment = -4108
+        Export.ActiveSheet.Cells(row+1,column+1).Value = InstrumentDict[item][1]
+        Export.ActiveSheet.Cells(row+1,column+1).HorizontalAlignment = -4108        
+        LoopBlock(l1,screen,row,3)
+        startrow = row
+        if l2:
+            LoopBlock(l2,screen,startrow,10)                       
+        if l3:
+            LoopBlock(l3,screen,startrow,17)
+        if l4:
+            LoopBlock(l4,screen,startrow,24) 
+        if l5:
+            LoopBlock(l5,screen,startrow,31)
+        row = Export.ActiveSheet.Cells(Export.ActiveSheet.Rows.Count, "C").End(xlUp).Row + 3
+    #Export.ActiveSheet.Columns("I:J").Delete()
+    Export.ActiveSheet.Range("A:A").Columns.AutoFit()            
+    Export.ActiveSheet.Range("B:C").Columns.AutoFit()
+    Export.ActiveSheet.Range("I:J").Columns.AutoFit()
+    Export.ActiveSheet.Range("O:Q").Columns.AutoFit()
+    Export.ActiveSheet.Range("W:X").Columns.AutoFit()
+    Export.ActiveSheet.Range("AD:AE").Columns.AutoFit()
+    Export.ActiveSheet.Range("AK:AK").Columns.AutoFit()    
     Export.Close(SaveChanges=True)        
     Xcel.Application.Quit()
 #    for item in InstrumentList:
@@ -4303,7 +4626,7 @@ def exportation():
         connection.close()
         storage.close()
         text = "Object Export prepared.\nDo you want to save the Export file\nin the Object Exports directory?"
-        answer = tk.messagebox.askokcancel(title=None, message=text)
+        answer = tk.messagebox.askyesno(title=None, message=text)
         print(answer)
         if answer:
             src = path

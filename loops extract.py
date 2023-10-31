@@ -257,23 +257,25 @@ for dict in Con2:
 #    print(key)
 #    print(dict)
     for key in dict:
-        print (key)
+#        print (key)
         for Cable in ConnectionsDict:
 #            print (Cable)
             column = 8 
             if  ConnectionsDict[Cable][0] == key:
-                print(ConnectionsDict[Cable][0])
-                print(key)
+#                print(ConnectionsDict[Cable][0])
+#                print(key)
+#                print (dict[key])
     #            print (ConnectionsDict[Cable][0])
     #            print (Loop.ActiveSheet.Cells(row,5).Value)
                 # Loop through the LSignal list to find the Instrument Signal
                 Flag = True
                 index = 0
                 for LSignal in LSignalDict[Cable]:
+                    
         #                        if item == None:
         #                            continue
                     if LSignal == dict[key]:
-                        
+                        print(LSignalDict) 
     #                    if item in LSignal:
         #                    if item == 'SPM-HS-3501A':
         #                        print(LSignal)
